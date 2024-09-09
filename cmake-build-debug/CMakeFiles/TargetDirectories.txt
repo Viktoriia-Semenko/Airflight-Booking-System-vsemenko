@@ -1,0 +1,3 @@
+/Users/vikasemenko/Documents/OOP 1 term/Airflight-Booking-System-vsemenko/cmake-build-debug/CMakeFiles/Airflight_Booking_System_vsemenko.dir
+/Users/vikasemenko/Documents/OOP 1 term/Airflight-Booking-System-vsemenko/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/vikasemenko/Documents/OOP 1 term/Airflight-Booking-System-vsemenko/cmake-build-debug/CMakeFiles/rebuild_cache.dir

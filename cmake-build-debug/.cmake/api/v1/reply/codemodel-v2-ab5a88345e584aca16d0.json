@@ -1,0 +1,60 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.28"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Airflight_Booking_System_vsemenko",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "Airflight_Booking_System_vsemenko::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-Airflight_Booking_System_vsemenko-Debug-554a508f432add8a505b.json",
+					"name" : "Airflight_Booking_System_vsemenko",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/vikasemenko/Documents/OOP 1 term/Airflight-Booking-System-vsemenko/cmake-build-debug",
+		"source" : "/Users/vikasemenko/Documents/OOP 1 term/Airflight-Booking-System-vsemenko"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}
