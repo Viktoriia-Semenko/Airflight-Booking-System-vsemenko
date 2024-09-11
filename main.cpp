@@ -1,7 +1,7 @@
 #include <iostream>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
+#include <map>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -14,11 +14,15 @@ private:
     bool is_booked;
 
 public:
-    Ticket (const string& name, int seat, const string& flight, double price)
-    : passenger_name (name), seat_num (seat), flight_num(flight), price(price), is_booked (false) {}
+    Ticket (const string& name, int seat, const string& flight, double ticket_price)
+    : passenger_name (name), seat_num (seat), flight_num(flight), price(ticket_price), is_booked (false) {}
 
     void book_ticket() {
         is_booked = true;
+    }
+
+    void return_ticket() {
+        is_booked = false;
     }
 
     string get_passenger_name() const {
@@ -29,8 +33,8 @@ public:
         return seat_num;
     }
 
-    string get_flight_name() const {
-        return passenger_name;
+    string get_flight_num() const {
+        return flight_num;
     }
 
     double get_price() const {
@@ -39,6 +43,10 @@ public:
 
     bool get_booked_status() const {
         return is_booked;
+    }
+
+    void view_tickets() const {
+        cout << seat_num << passenger_name << price;
     }
 };
 
@@ -49,20 +57,15 @@ private:
     string date;
     int total_seats;
     int seats_per_row;
-    int max_num_of_tickets;
-    int booked_tickets;
     bool* available_seats;
-    Ticket** tickets;
-
-    int middle_row;
-    double price1;
-    double price2;
+    Ticket** tickets;  // array for ticket
+    map<int, double> row_prices;
 
 
 public:
-    Airplane(const string& flight, const string& date, int seats_per_row, int total_rows, int mid_row, double price1, double price2)
+    Airplane(const string& flight, const string& date, int seats_per_row, int total_rows, map<int, double> price)
     : flight_num(flight), date(date), seats_per_row(seats_per_row), total_seats(seats_per_row * total_rows),
-    middle_row(mid_row), price1(price1), price2(price1), booked_tickets(0) {
+    row_prices(price) {
 
         available_seats = new bool[total_seats];
         tickets = new Ticket * [total_seats];
@@ -75,28 +78,44 @@ public:
 
     ~Airplane() {
         delete[] available_seats;
-        for (int i = 0; i < booked_tickets; ++i) {
+        for (int i = 0; i < total_seats; ++i) {
             delete tickets[i];
         }
         delete[] tickets;
     }
-
-    string get_flight_num() const {
+    string get_flight_number() const {
         return flight_num;
     }
 
-    string get_date() const {
-        return date;
-    }
-
     double get_seat_price(int seat_num) const {
-        int row = (seat_num - 1) / (seats_per_row + 1); // calculating the row os the seat
-        if (row <= middle_row) {
-            return price1;
-        } else {
-            return price2;
+        int row = (seat_num - 1) / seats_per_row + 1; // calculating the row of the seat
+        for (const auto& ticket_price : row_prices) {
+            if (row <= ticket_price.first) {
+                return ticket_price.second;
+            }
         }
+        cout << "Invalid input data" << endl;
+        return 0.0;
     }
 
+    void check_seats() const {
+        for (int i = 0; i < total_seats; ++i) {
+            if (!available_seats[i]) {
+                double price = get_seat_price(i + 1);
+                char seat_letter = 'A' + (i % seats_per_row);
+                int row = (i / seats_per_row) + 1;
+                cout << row << seat_letter << " " << price << ", ";
+            }
+        }
+        cout << endl;
+    }
 };
 
+class File_Reader
+{
+public:
+};
+
+int main()
+{
+}
