@@ -217,6 +217,28 @@ public:
         }
         return found;
     }
+
+    bool view_all_tickets(const string& flight_number) const {
+        bool found = false;
+
+        if (flight_number != flight_num) {
+            return found; // If the flight numbers don't match, return false
+        }
+
+        for (int i = 0; i < total_seats; ++i) {
+            if (tickets[i] && tickets[i]->get_flight_num() == flight_number) {
+                int seat_num = tickets[i]->get_seat_num();
+                char seat_letter = 'A' + (seat_num - 1) % seats_per_row;
+                int row = (seat_num - 1) / seats_per_row + 1;
+                string name = tickets[i]->get_passenger_name();
+                double price = tickets[i]->get_price();
+
+                cout << row << seat_letter << " " << name << " " << price << "$" << endl;
+                found = true;
+            }
+        }
+        return found;
+    }
 };
 
 class File_Reader {
@@ -326,6 +348,21 @@ int main() {
             }
             if (!found) {
                 cout << "No tickets found for " << username << endl;
+            }
+        } else if (command == "view_all") {
+            iss >> flight_number;
+
+            bool found = false;
+            for (int i = 0; i < airplane_count; ++i) {
+                if (airplanes[i]->get_flight_number() == flight_number) {
+                    if (airplanes[i]->view_all_tickets(flight_number)) {
+                        found = true;
+                    }
+                    break;
+                }
+            }
+            if (!found) {
+                cout << "No tickets booked for " << flight_number << endl;
             }
         } else {
             cout << "Invalid command!" << endl;
