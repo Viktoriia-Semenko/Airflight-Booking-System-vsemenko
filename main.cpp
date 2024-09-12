@@ -159,7 +159,6 @@ public:
 
     bool return_ticket(const string& confirmation_id) {
         if (id_map.find(confirmation_id) == id_map.end()) {
-            cout << "Invalid confirmation ID!" << endl;
             return false;
         }
 
@@ -183,6 +182,25 @@ public:
 
         return true;
     }
+
+    bool view_ticket(const string& confirmation_id) const {
+        if (id_map.find(confirmation_id) == id_map.end()) {
+            return false;
+        }
+
+        int seat_num = id_map.at(confirmation_id);
+        if (seat_num <= 0 || seat_num > total_seats || !tickets[seat_num - 1]) {
+            cout << "Ticket not found or seat is not booked." << endl;
+            return false;
+        }
+
+        Ticket* ticket = tickets[seat_num - 1];
+        cout << "Flight " << flight_num << ", " << date << ", ";
+        cout << "seat " << ticket->get_seat_num() << ", price " << ticket->get_price() << "$,\n";
+        cout << ticket->get_passenger_name() << endl;
+        return true;
+    }
+
 };
 
 class File_Reader {
@@ -255,20 +273,29 @@ int main() {
         else if (command == "book") {
             selectedAirplane->book_seat(username, seat);
         }
-        else if (command == "return") {
+        else if (command == "return" || command == "view") {
             string confirmation_id;
             iss >> confirmation_id;
 
             bool found = false;
             for (int i = 0; i < airplane_count; ++i) {
-                if (airplanes[i]->return_ticket(confirmation_id)) {
-                    selectedAirplane = airplanes[i];
-                    break;
+                if (command == "return") {
+                    if (airplanes[i]->return_ticket(confirmation_id)) {
+                        found = true;
+                        break;
+                    }
+                }
+                else if (command == "view") {
+                    if (airplanes[i]->view_ticket(confirmation_id)) {
+                        found = true;
+                        break;
+                    }
                 }
             }
-//            if (!found) {
-//                cout << "Invalid confirmation ID or ticket not found!" << endl;
-//            }
+            if (!found) {
+                cout << "Invalid confirmation ID or ticket not found!" << endl;
+            }
+
         } else {
             cout << "Invalid command!" << endl;
         }
