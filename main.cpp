@@ -201,7 +201,7 @@ public:
         return true;
     }
 
-    void view_user_tickets(const string& passenger_name) const {
+    bool view_user_tickets(const string& passenger_name) const {
         bool found = false;
 
         for (int i = 0; i < total_seats; ++i) {
@@ -215,13 +215,8 @@ public:
                 found = true;
             }
         }
-
-        if (!found) {
-           found = false;
-        }
+        return found;
     }
-
-
 };
 
 class File_Reader {
@@ -324,8 +319,10 @@ int main() {
 
             bool found = false;
             for (int i = 0; i < airplane_count; ++i) {
-                airplanes[i]->view_user_tickets(username);
-                found = true;
+                if (airplanes[i]->view_user_tickets(username)) {
+                    found = true;
+                    break;
+                }
             }
             if (!found) {
                 cout << "No tickets found for " << username << endl;
