@@ -196,10 +196,31 @@ public:
 
         Ticket* ticket = tickets[seat_num - 1];
         cout << "Flight " << flight_num << ", " << date << ", ";
-        cout << "seat " << ticket->get_seat_num() << ", price " << ticket->get_price() << "$,\n";
+        cout << "seat " << ticket->get_seat_num() << ", price " << ticket->get_price() << "$, ";
         cout << ticket->get_passenger_name() << endl;
         return true;
     }
+
+    void view_user_tickets(const string& passenger_name) const {
+        bool found = false;
+
+        for (int i = 0; i < total_seats; ++i) {
+            if (tickets[i] && tickets[i]->get_passenger_name() == passenger_name) {
+                int seat_num = tickets[i]->get_seat_num();
+                char seat_letter = 'A' + (seat_num - 1) % seats_per_row;
+                int row = (seat_num - 1) / seats_per_row + 1;
+                double price = tickets[i]->get_price();
+
+                cout << "Flight " << flight_num << ", " << date << ", seat " << row << seat_letter << ", price " << price << "$" << endl;
+                found = true;
+            }
+        }
+
+        if (!found) {
+           found = false;
+        }
+    }
+
 
 };
 
@@ -246,7 +267,9 @@ int main() {
         cout << "> ";
         getline(cin, command_line);
 
-        if (command_line == "exit") break;
+        if (command_line == "exit") {
+            break;
+        }
 
         istringstream iss(command_line);
         string command, date, flight_number, seat, username;
@@ -296,6 +319,17 @@ int main() {
                 cout << "Invalid confirmation ID or ticket not found!" << endl;
             }
 
+        }  else if (command == "view_username") {
+            iss >> username;
+
+            bool found = false;
+            for (int i = 0; i < airplane_count; ++i) {
+                airplanes[i]->view_user_tickets(username);
+                found = true;
+            }
+            if (!found) {
+                cout << "No tickets found for " << username << endl;
+            }
         } else {
             cout << "Invalid command!" << endl;
         }
