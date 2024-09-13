@@ -108,35 +108,62 @@ public:
     }
 
 };
+class RAII_Wrapper {
+private:
+    ifstream file_stream;
+    string file_name;
 
+public:
+    RAII_Wrapper(const string& name) : file_name(name) {
+        file_stream.open(file_name);
+        if (!file_stream.is_open()) {
+            throw std::runtime_error("Error opening file");
+        }
+    }
+
+    ~RAII_Wrapper() {
+        if (file_stream.is_open()) {
+            file_stream.close();
+        }
+    }
+
+    ifstream& get_stream() {
+        return file_stream;
+    }
+
+    bool is_open() const {
+        return file_stream.is_open();
+    }
+
+};
 class File_Reader {
 public:
     static void load_config(const string& file_name, Airplane** airplanes, int& airplane_count) {
-        ifstream infile(file_name);
-        if (!infile) {
-            cerr << "Error opening file!" << endl;
-            return;
-        }
+       try {
+           RAII_Wrapper file(file_name);
 
-        string date, flight_num, row_info1, row_info2, price1, price2;
-        int seats_per_row, row_start1, row_end1, row_start2, row_end2;
-        map<int, double> row_prices;
+           string date, flight_num, row_info1, row_info2, price1, price2;
+           int seats_per_row, row_start1, row_end1, row_start2, row_end2;
+           map<int, double> row_prices;
 
-        while (infile >> date >> flight_num >> seats_per_row >> row_info1 >> price1 >> row_info2 >> price2) {
-            row_prices.clear();
+           while (file.get_stream() >> date >> flight_num >> seats_per_row >> row_info1 >> price1 >> row_info2
+                                    >> price2) {
+               row_prices.clear();
 
-            sscanf(row_info1.c_str(), "%d-%d", &row_start1, &row_end1);
-            sscanf(row_info2.c_str(), "%d-%d", &row_start2, &row_end2);
+               sscanf(row_info1.c_str(), "%d-%d", &row_start1, &row_end1);
+               sscanf(row_info2.c_str(), "%d-%d", &row_start2, &row_end2);
 
-            row_prices[row_end1] = stod(price1.substr(0, price1.size() - 1));
-            row_prices[row_end2] = stod(price2.substr(0, price2.size() - 1));
+               row_prices[row_end1] = stod(price1.substr(0, price1.size() - 1));
+               row_prices[row_end2] = stod(price2.substr(0, price2.size() - 1));
 
-            int total_rows = row_end2;
+               int total_rows = row_end2;
 
-            airplanes[airplane_count] = new Airplane(flight_num, date, seats_per_row, total_rows, row_prices);
-            airplane_count++;
-        }
-        infile.close();
+               airplanes[airplane_count] = new Airplane(flight_num, date, seats_per_row, total_rows, row_prices);
+               airplane_count++;
+           }
+       } catch (const runtime_error& e){
+           cerr << e.what() << endl;
+       }
     }
 };
 
@@ -371,7 +398,7 @@ public:
             }  else if (command == "view_username") {
                 iss >> username;
 
-                bool found = view_user_tickets(username);
+                bool found = view_user_tickets(username); 
                 if (!found) {
                     cout << "No tickets found for " << username << endl;
                 }
