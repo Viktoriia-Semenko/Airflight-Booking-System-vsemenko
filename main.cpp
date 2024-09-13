@@ -55,6 +55,7 @@ public:
 
         total_seats = seats_per_row * total_rows;
         available_seats = new bool[total_seats];
+
         for (int i = 0; i < total_seats; ++i) {
             available_seats[i] = false;
         }
@@ -94,17 +95,6 @@ public:
         }
         cout << "Invalid input data" << endl;
         return 0.0;
-    }
-    void show_available_seats(const string& flight_number) const {
-        for (int i = 0; i < total_seats; ++i) {
-            if (!available_seats[i]) {
-                double price = get_seat_price(i + 1);
-                char seat_letter = 'A' + (i % seats_per_row);
-                int row = (i / seats_per_row) + 1;
-                cout << row << seat_letter << " " << price << "$, ";
-            }
-        }
-        cout << endl;
     }
 
 };
@@ -197,6 +187,26 @@ public:
         return nullptr;
     }
 
+    void show_available_seats(const string& flight_num) const {
+        Airplane* airplane = find_airplane(flight_num);
+
+        int total_seats = airplane->get_total_seats();
+        if (total_seats <= 0) {
+            cout << "No seats available." << endl;
+            return;
+        }
+
+        for (int i = 0; i < total_seats; ++i) {
+            if (airplane->is_seat_available(i + 1)) {
+                double price = airplane->get_seat_price(i + 1);
+                char seat_letter = 'A' + (i % airplane->get_seats_per_row());
+                int row = (i / airplane->get_seats_per_row()) + 1;
+                cout << row << seat_letter << " " << price << "$, ";
+            }
+        }
+        cout << endl;
+    }
+
     bool book_seat(const string& flight_num, const string& passenger_name, const string& seat) {
         Airplane* airplane = find_airplane(flight_num);
 
@@ -210,7 +220,6 @@ public:
             cout << "Invalid seat letter.\n";
             return false;
         }
-
 
         if (seat_num <= 0 || seat_num > total_seats) {
             cout << "Invalid seat number.\n";
@@ -232,7 +241,7 @@ public:
 
         tickets[seat_num - 1] = new Ticket(passenger_name, seat_num, flight_num, price, confirmation_id);
         tickets[seat_num - 1]->book_ticket();
-        airplane->set_seat_availability(seat_num, false);
+        airplane->set_seat_availability(seat_num, true);
 
         id_map[confirmation_id] = seat_num;
 
@@ -371,7 +380,7 @@ public:
                 }
             }
             if (command == "check") {
-                selectedAirplane->show_available_seats(flight_number);
+                show_available_seats(flight_number);
             } else if (command == "book") {
                 book_seat(flight_number, username, seat);
             } else if (command == "return" || command == "view") {
