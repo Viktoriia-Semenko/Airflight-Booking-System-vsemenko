@@ -64,35 +64,42 @@ private:
     int total_seats;
     int seats_per_row;
     bool* available_seats;
-    Ticket** tickets;  // array for ticket
     map<int, double> row_prices;
-    map<string, int> id_map;
-    int booking_id_count = 10000;
-
 
 public:
     Airplane(const string& flight, const string& date, int seats_per_row, int total_rows, map<int, double> price)
-    : flight_num(flight), date(date), seats_per_row(seats_per_row), row_prices(price), booking_id_count(10000)  {
+    : flight_num(flight), date(date), seats_per_row(seats_per_row), row_prices(price) {
 
         total_seats = seats_per_row * total_rows;
         available_seats = new bool[total_seats];
-        tickets = new Ticket * [total_seats];
-
         for (int i = 0; i < total_seats; ++i) {
             available_seats[i] = false;
-            tickets[i] = nullptr;
         }
     }
 
     ~Airplane() {
         delete[] available_seats;
-        for (int i = 0; i < total_seats; ++i) {
-            delete tickets[i];
-        }
-        delete[] tickets;
     }
+
     string get_flight_number() const {
         return flight_num;
+    }
+    string get_flight_date() const {
+        return date;
+    }
+    bool is_seat_available(int seat_num) const {
+        return !available_seats[seat_num - 1];
+    }
+    void set_seat_availability(int seat_num, bool available) {
+        available_seats[seat_num - 1] = available;
+    }
+
+    int get_total_seats() const {
+        return total_seats;
+    }
+
+    int get_sests_per_row() const {
+        return seats_per_row;
     }
 
     double get_seat_price(int seat_num) const {
@@ -105,145 +112,33 @@ public:
         cout << "Invalid input data" << endl;
         return 0.0;
     }
-
-    void check_seats() const {
-        for (int i = 0; i < total_seats; ++i) {
-            if (!available_seats[i]) {
-                double price = get_seat_price(i + 1);
-                char seat_letter = 'A' + (i % seats_per_row);
-                int row = (i / seats_per_row) + 1;
-                cout << row << seat_letter << " " << price << "$, ";
-            }
-        }
-        cout << endl;
-    }
-
-    bool book_seat(const string& passenger_name, const string& seat) {
-
-        int row = stoi(seat.substr(0, seat.size() - 1));
-        char seat_letter = seat.back();
-        int seat_num = (row - 1) * seats_per_row + (seat_letter - 'A' + 1);
-
-        if (seat_letter < 'A' || seat_letter >= ('A' + seats_per_row)) {
-            cout << "Invalid seat letter.\n";
-            return false;
-        }
-
-        if (seat_num <= 0 || seat_num > total_seats) {
-            cout << "Invalid seat number.\n";
-            return false;
-        }
-
-        if (available_seats[seat_num - 1]) {
-            cout << "Seat already booked.\n";
-            return false;
-        }
-
-        double price = get_seat_price(seat_num);
-        if (price == 0.0) {
-            cout << "Invalid row number." << endl;
-            return false;
-        }
-        string confirmation_id = to_string(booking_id_count++);
-
-        tickets[seat_num - 1] = new Ticket(passenger_name, seat_num, flight_num, price, confirmation_id);
-        tickets[seat_num - 1]->book_ticket();
-        available_seats[seat_num - 1] = true;
-
-        id_map[confirmation_id] = seat_num;
-
-        cout << "Confirmed with ID " << confirmation_id << endl;
-
-        return true;
-    }
-
-    bool return_ticket(const string& confirmation_id) {
-        if (id_map.find(confirmation_id) == id_map.end()) {
-            return false;
-        }
-
-        int seat_num = id_map[confirmation_id];
-
-        if (seat_num <= 0 || seat_num > total_seats || !available_seats[seat_num - 1]) {
-            cout << "Invalid seat number or seat is not booked." << endl;
-            return false;
-        }
-
-        string passenger_name = tickets[seat_num - 1]->get_passenger_name();
-        double refund_amount = tickets[seat_num - 1]->get_price();
-
-        available_seats[seat_num - 1] = false;
-        delete tickets[seat_num - 1];
-        tickets[seat_num - 1] = nullptr;
-
-        id_map.erase(confirmation_id);
-
-        cout << "Confirmed " << refund_amount << "$ refund for " << passenger_name << endl;
-
-        return true;
-    }
-
-    bool view_ticket(const string& confirmation_id) const {
-        if (id_map.find(confirmation_id) == id_map.end()) {
-            return false;
-        }
-
-        int seat_num = id_map.at(confirmation_id);
-        if (seat_num <= 0 || seat_num > total_seats || !tickets[seat_num - 1]) {
-            cout << "Ticket not found or seat is not booked." << endl;
-            return false;
-        }
-
-        Ticket* ticket = tickets[seat_num - 1];
-        cout << "Flight " << flight_num << ", " << date << ", ";
-        cout << "seat " << ticket->get_seat_num() << ", price " << ticket->get_price() << "$, ";
-        cout << ticket->get_passenger_name() << endl;
-        return true;
-    }
-
-    bool view_user_tickets(const string& passenger_name) const {
-        bool found = false;
-
-        for (int i = 0; i < total_seats; ++i) {
-            if (tickets[i] && tickets[i]->get_passenger_name() == passenger_name) {
-                int seat_num = tickets[i]->get_seat_num();
-                char seat_letter = 'A' + (seat_num - 1) % seats_per_row;
-                int row = (seat_num - 1) / seats_per_row + 1;
-                double price = tickets[i]->get_price();
-
-                cout << "Flight " << flight_num << ", " << date << ", seat " << row << seat_letter << ", price " << price << "$" << endl;
-                found = true;
-            }
-        }
-        return found;
-    }
-
-    bool view_all_tickets(const string& flight_number) const {
-        bool found = false;
-
-        if (flight_number != flight_num) {
-            return found; // If the flight numbers don't match, return false
-        }
-
-        for (int i = 0; i < total_seats; ++i) {
-            if (tickets[i] && tickets[i]->get_flight_num() == flight_number) {
-                int seat_num = tickets[i]->get_seat_num();
-                char seat_letter = 'A' + (seat_num - 1) % seats_per_row;
-                int row = (seat_num - 1) / seats_per_row + 1;
-                string name = tickets[i]->get_passenger_name();
-                double price = tickets[i]->get_price();
-
-                cout << row << seat_letter << " " << name << " " << price << "$" << endl;
-                found = true;
-            }
-        }
-        return found;
-    }
+//
+//    bool view_all_tickets(const string& flight_number) const {
+//        bool found = false;
+//
+//        if (flight_number != flight_num) {
+//            return found; // If the flight numbers don't match, return false
+//        }
+//
+//        for (int i = 0; i < total_seats; ++i) {
+//            if (tickets[i] && tickets[i]->get_flight_num() == flight_number) {
+//                int seat_num = tickets[i]->get_seat_num();
+//                char seat_letter = 'A' + (seat_num - 1) % seats_per_row;
+//                int row = (seat_num - 1) / seats_per_row + 1;
+//                string name = tickets[i]->get_passenger_name();
+//                double price = tickets[i]->get_price();
+//
+//                cout << row << seat_letter << " " << name << " " << price << "$" << endl;
+//                found = true;
+//            }
+//        }
+//        return found;
+//    }
 };
 
 class File_Reader {
 public:
-    void load_config(const string& file_name, Airplane** airplanes, int& num_of_records) {
+    static void load_config(const string& file_name, Airplane** airplanes, int& airplane_count) {
         ifstream infile(file_name);
         if (!infile) {
             cerr << "Error opening file!" << endl;
@@ -265,114 +160,289 @@ public:
 
             int total_rows = row_end2;
 
-            airplanes[num_of_records] = new Airplane(flight_num, date, seats_per_row, total_rows, row_prices);
-            num_of_records++;
+            airplanes[airplane_count] = new Airplane(flight_num, date, seats_per_row, total_rows, row_prices);
+            airplane_count++;
         }
         infile.close();
     }
 };
 
-int main() {
+class Command_Line_Interface
+{
+private:
     Airplane* airplanes[100];
-    int airplane_count = 0;
+    Ticket* tickets[1000];
+    map<string, int> id_map;
+    int airplane_count;
+    int ticket_count;
+    int booking_id_count;
 
-    File_Reader file_reader;
-    file_reader.load_config("/Users/vikasemenko/Documents/OOP 1 term/Airflight-Booking-System-vsemenko/config.txt", airplanes, airplane_count);
+public:
+    Command_Line_Interface() : airplane_count(0), ticket_count(0), booking_id_count(10000) {}
 
-    string command_line;
-    while (true) {
-        cout << "> ";
-        getline(cin, command_line);
+    void initialize(const string& file_name) {
+        File_Reader::load_config(file_name, airplanes, airplane_count);
+    }
 
-        if (command_line == "exit") {
-            break;
-        }
-
-        istringstream iss(command_line);
-        string command, date, flight_number, seat, username;
-
-        iss >> command;
-
-        Airplane* selectedAirplane = nullptr;
-        if (command == "check" || command == "book") {
-            iss >> date >> flight_number >> seat >> username;
-            for (int i = 0; i < airplane_count; ++i) {
-                if (airplanes[i]->get_flight_number() == flight_number) {
-                    selectedAirplane = airplanes[i];
-                    break;
-                }
-            }
-            if (!selectedAirplane) {
-                cout << "Flight not found!" << endl;
-                continue;
+    Airplane* find_airplane(const string& flight_number) const {
+        for (int i = 0; i < airplane_count; ++i) {
+            if (airplanes[i]->get_flight_number() == flight_number) {
+                return airplanes[i];
             }
         }
-        if (command == "check") {
-            selectedAirplane->check_seats();
-        }
-        else if (command == "book") {
-            selectedAirplane->book_seat(username, seat);
-        }
-        else if (command == "return" || command == "view") {
-            string confirmation_id;
-            iss >> confirmation_id;
+        return nullptr;
+    }
 
-            bool found = false;
-            for (int i = 0; i < airplane_count; ++i) {
-                if (command == "return") {
-                    if (airplanes[i]->return_ticket(confirmation_id)) {
-                        found = true;
-                        break;
-                    }
-                }
-                else if (command == "view") {
-                    if (airplanes[i]->view_ticket(confirmation_id)) {
-                        found = true;
-                        break;
-                    }
-                }
+    void check_seats(const string& flight_number) const {
+        Airplane* airplane = find_airplane(flight_number);
+
+        for (int i = 0; i < airplane->get_total_seats(); ++i) {
+            if (!airplane->is_seat_available(i + 1)) {
+                double price = airplane->get_seat_price(i + 1);
+                int seats_per_row = airplane->get_sests_per_row();
+                char seat_letter = 'A' + (i % seats_per_row);
+                int row = (i / seats_per_row) + 1;
+                cout << row << seat_letter << " " << price << "$, ";
             }
-            if (!found) {
-                cout << "Invalid confirmation ID or ticket not found!" << endl;
-            }
+        }
+        cout << endl;
+    }
 
-        }  else if (command == "view_username") {
-            iss >> username;
+    bool book_seat(const string& flight_num, const string& passenger_name, const string& seat) {
+        Airplane* airplane = find_airplane(flight_num);
 
-            bool found = false;
-            for (int i = 0; i < airplane_count; ++i) {
-                if (airplanes[i]->view_user_tickets(username)) {
+        int row = stoi(seat.substr(0, seat.size() - 1));
+        char seat_letter = seat.back();
+        int seats_per_row = airplane->get_sests_per_row();
+        int total_seats = airplane->get_total_seats();
+        int seat_num = (row - 1) * seats_per_row + (seat_letter - 'A' + 1);
+
+        if (seat_letter < 'A' || seat_letter >= ('A' + seats_per_row)) {
+            cout << "Invalid seat letter.\n";
+            return false;
+        }
+
+
+        if (seat_num <= 0 || seat_num > total_seats) {
+            cout << "Invalid seat number.\n";
+            return false;
+        }
+
+        if (!airplane->is_seat_available(seat_num)) {
+            cout << "Seat already booked.\n";
+            return false;
+        }
+
+        double price = airplane->get_seat_price(seat_num);
+        if (price == 0.0) {
+            cout << "Invalid row number." << endl;
+            return false;
+        }
+
+        string confirmation_id = to_string(booking_id_count++);
+
+        tickets[seat_num - 1] = new Ticket(passenger_name, seat_num, flight_num, price, confirmation_id);
+        tickets[seat_num - 1]->book_ticket();
+        airplane->set_seat_availability(seat_num, false);
+
+        id_map[confirmation_id] = seat_num;
+
+        cout << "Confirmed with ID " << confirmation_id << endl;
+
+        return true;
+    }
+
+    bool return_ticket(const string& confirmation_id) {
+
+        if (id_map.find(confirmation_id) == id_map.end()) {
+            return false;
+        }
+        int seat_num = id_map[confirmation_id];
+        Ticket* ticket = tickets[seat_num - 1];
+
+        string flight_number = ticket->get_flight_num();
+
+        double refund_amount = tickets[seat_num - 1]->get_price();
+        string passenger_name = tickets[seat_num - 1]->get_passenger_name();
+
+        delete tickets[seat_num - 1];
+        tickets[seat_num - 1] = nullptr;
+
+        id_map.erase(confirmation_id);
+
+        cout << "Confirmed " << refund_amount << "$ refund for " << passenger_name << endl;
+
+        return true;
+    }
+
+    bool view_ticket(const string& confirmation_id) const {
+
+        if (id_map.find(confirmation_id) == id_map.end()) {
+            return false;
+        }
+
+        int seat_num = id_map.at(confirmation_id);
+        Ticket* ticket = tickets[seat_num - 1];
+
+        string flight_number = ticket->get_flight_num();
+        Airplane* airplane = find_airplane(ticket->get_flight_num());
+
+        int seats_per_row = airplane->get_sests_per_row();
+        char seat_letter = 'A' + ((seat_num - 1) % seats_per_row);
+
+        cout << "Flight " << ticket->get_flight_num() << ", " << airplane->get_flight_date() << ", ";
+        cout << "seat " << ticket->get_seat_num() << seat_letter << ", price " << ticket->get_price() << "$, ";
+        cout << ticket->get_passenger_name() << endl;
+        return true;
+    }
+
+    bool view_user_tickets(const string& passenger_name) const {
+        bool found = false;
+
+        for (int j = 0; j < airplane_count; ++j) {
+            Airplane* airplane = airplanes[j];
+            for (int i = 0; i < airplane->get_total_seats(); ++i) {
+                if (tickets[i] && tickets[i]->get_passenger_name() == passenger_name) {
+                    int seat_num = tickets[i]->get_seat_num();
+                    char seat_letter = 'A' + (seat_num - 1) % airplane->get_sests_per_row();
+                    double price = tickets[i]->get_price();
+                    cout << "Flight " << airplane->get_flight_number() << ", " << airplane->get_flight_date()
+                         << ", seat " << seat_num << seat_letter << ", price " << price << "$" << endl;
                     found = true;
-                    break;
                 }
             }
-            if (!found) {
-                cout << "No tickets found for " << username << endl;
-            }
-        } else if (command == "view_all") {
-            iss >> flight_number;
+        }
+        return found;
+    }
 
-            bool found = false;
-            for (int i = 0; i < airplane_count; ++i) {
-                if (airplanes[i]->get_flight_number() == flight_number) {
-                    if (airplanes[i]->view_all_tickets(flight_number)) {
-                        found = true;
+    bool view_all_tickets(const string& flight_number) const {
+        bool found = false;
+        Airplane* airplane = nullptr;
+
+        for (int i = 0; i < airplane_count; ++i) {
+            if (airplanes[i]->get_flight_number() == flight_number) {
+                airplane = airplanes[i];
+                break;
+            }
+        }
+
+        for (int i = 0; i < airplane->get_total_seats(); ++i) {
+            if (tickets[i] && tickets[i]->get_flight_num() == flight_number) {
+
+                int seat_num = tickets[i]->get_seat_num();
+                char seat_letter = 'A' + (seat_num - 1) % airplane->get_sests_per_row();
+                int row = (seat_num - 1) / airplane->get_sests_per_row() + 1;
+
+                string name = tickets[i]->get_passenger_name();
+                double price = tickets[i]->get_price();
+
+                cout << row << seat_letter << " " << name << " " << price << "$" << endl;
+                found = true;
+            }
+        }
+        return found;
+    }
+
+    void process_commands() {
+        string command_line;
+        while (true) {
+            cout << "> ";
+            getline(cin, command_line);
+
+            if (command_line == "exit") {
+                break;
+            }
+
+            istringstream iss(command_line);
+            string command, date, flight_number, seat, username;
+            iss >> command;
+
+            Airplane *selectedAirplane = nullptr;
+            if (command == "check" || command == "book") {
+                iss >> date >> flight_number >> seat >> username;
+                for (int i = 0; i < airplane_count; ++i) {
+                    if (airplanes[i]->get_flight_number() == flight_number) {
+                        selectedAirplane = airplanes[i];
+                        break;
                     }
-                    break;
+                }
+                if (!selectedAirplane) {
+                    cout << "Flight not found!" << endl;
+                    continue;
                 }
             }
-            if (!found) {
-                cout << "No tickets booked for " << flight_number << endl;
+            if (command == "check") {
+                check_seats(flight_number);
+            } else if (command == "book") {
+                book_seat(flight_number, username, seat);
+            } else if (command == "return" || command == "view") {
+                string confirmation_id;
+                iss >> confirmation_id;
+                bool found = false;
+                for (int i = 0; i < airplane_count; ++i) {
+                    if (command == "return") {
+                        if (return_ticket(confirmation_id)) {
+                            found = true;
+                            break;
+                        }
+                    } else if (command == "view") {
+                        if (view_ticket(confirmation_id)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    cout << "Invalid confirmation ID or ticket not found!" << endl;
+                }
+
+            }  else if (command == "view_username") {
+                iss >> username;
+
+                bool found = false;
+                for (int i = 0; i < airplane_count; ++i) {
+                    view_user_tickets(username);
+                    found = true;
+                }
+                if (!found) {
+                    cout << "No tickets found for " << username << endl;
+                }
+            } else if (command == "view_all") {
+                iss >> flight_number;
+
+                bool found = false;
+                for (int i = 0; i < airplane_count; ++i) {
+                    if (airplanes[i]->get_flight_number() == flight_number) {
+                        if (view_all_tickets(flight_number)) {
+                            found = true;
+                        }
+                        break;
+                    }
+                }
+                if (!found) {
+                    cout << "No tickets booked for " << flight_number << endl;
+                }
+            } else {
+                cout << "Invalid command!" << endl;
             }
-        } else {
-            cout << "Invalid command!" << endl;
+        }
+
+    }
+
+    ~Command_Line_Interface() {
+        for (int i = 0; i < airplane_count; ++i) {
+            delete airplanes[i];
+        }
+        for (int i = 0; i < ticket_count; ++i) {
+            delete tickets[i];
         }
     }
 
-    // Clean up allocated memory
-    for (int i = 0; i < airplane_count; ++i) {
-        delete airplanes[i];
-    }
+};
 
-    return 0;
+int main() {
+
+    Command_Line_Interface cli;
+    cli.initialize("/Users/vikasemenko/Documents/OOP 1 term/Airflight-Booking-System-vsemenko/config.txt");
+    cli.process_commands();
 }
