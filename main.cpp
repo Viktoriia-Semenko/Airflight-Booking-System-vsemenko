@@ -408,15 +408,13 @@ public:
                 bool found = false;
                 for (int i = 0; i < airplane_count; ++i) {
                     if (airplanes[i]->get_flight_number() == flight_number) {
-                        if (view_all_tickets(flight_number)) {
-                            found = true;
+                        view_all_tickets(flight_number);
+                        if (!found) {
+                            cout << "No tickets booked for " << flight_number << endl;
                         }
-                        break;
                     }
                 }
-                if (!found) {
-                    cout << "No tickets booked for " << flight_number << endl;
-                }
+
             } else {
                 cout << "Invalid command!" << endl;
             }
