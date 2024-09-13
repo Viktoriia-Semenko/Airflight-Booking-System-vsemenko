@@ -262,11 +262,13 @@ public:
         bool found = false;
 
         for (int i = 0; i < airplane_count; ++i) {
-            Airplane* airplane = airplanes[i];
+            Ticket* ticket = tickets[i];
 
-            for (int j = 0; j < airplane->get_total_seats(); ++j) {
-                Ticket* ticket = tickets[j];
-                if (ticket && ticket->get_passenger_name() == passenger_name) {
+            if (ticket && ticket->get_passenger_name() == passenger_name) {
+                string flight_number = ticket->get_flight_num();
+                Airplane* airplane = find_airplane(flight_number);
+
+                if (airplane) {
                     int seat_num = ticket->get_seat_num();
                     char seat_letter = 'A' + (seat_num - 1) % airplane->get_seats_per_row();
                     double price = ticket->get_price();
@@ -276,6 +278,9 @@ public:
                     found = true;
                 }
             }
+        }
+        if (!found) {
+            return false;
         }
         return found;
     }
@@ -366,11 +371,7 @@ public:
             }  else if (command == "view_username") {
                 iss >> username;
 
-                bool found = false;
-                for (int i = 0; i < airplane_count; ++i) {
-                    view_user_tickets(username);
-                    found = true;
-                }
+                bool found = view_user_tickets(username);
                 if (!found) {
                     cout << "No tickets found for " << username << endl;
                 }
