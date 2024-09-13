@@ -305,15 +305,15 @@ public:
                     found = true;
                 }
             }
-        }
-        if (!found) {
-            return false;
+            if (!found) {
+                return false;
+            }
         }
         return found;
     }
 
     bool view_all_tickets(const string& flight_number) const {
-        bool found = true;
+        bool found = false;
         Airplane* airplane = nullptr;
 
         for (int i = 0; i < airplane_count; ++i) {
@@ -405,16 +405,10 @@ public:
             } else if (command == "view_all") {
                 iss >> flight_number;
 
-                bool found = false;
-                for (int i = 0; i < airplane_count; ++i) {
-                    if (airplanes[i]->get_flight_number() == flight_number) {
-                        view_all_tickets(flight_number);
-                        if (!found) {
-                            cout << "No tickets booked for " << flight_number << endl;
-                        }
-                    }
+                bool found = view_all_tickets(flight_number);
+                if (!found) {
+                    cout << "No tickets booked for " << flight_number << endl;
                 }
-
             } else {
                 cout << "Invalid command!" << endl;
             }
