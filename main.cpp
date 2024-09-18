@@ -221,7 +221,7 @@ public:
             return false;
         }
 
-        if (seat_num <= 0 || seat_num > total_seats) {
+        if (seat_num <= 0 || seat_num > total_seats || seat_num > 1000) {
             cout << "Invalid seat number.\n";
             return false;
         }
@@ -286,10 +286,11 @@ public:
         Airplane* airplane = find_airplane(ticket->get_flight_num());
 
         int seats_per_row = airplane->get_seats_per_row();
+        int row = (seat_num - 1) / seats_per_row + 1;
         char seat_letter = 'A' + ((seat_num - 1) % seats_per_row);
 
         cout << "Flight " << ticket->get_flight_num() << ", " << airplane->get_flight_date() << ", ";
-        cout << "seat " << ticket->get_seat_num() << seat_letter << ", price " << ticket->get_price() << "$, ";
+        cout << "seat " << row << seat_letter << ", price " << ticket->get_price() << "$, ";
         cout << ticket->get_passenger_name() << endl;
         return true;
     }
@@ -298,26 +299,27 @@ public:
         bool found = false;
 
         for (int i = 0; i < airplane_count; ++i) {
-            Ticket* ticket = tickets[i];
+            Ticket *ticket = tickets[i];
 
             if (ticket && ticket->get_passenger_name() == passenger_name) {
                 string flight_number = ticket->get_flight_num();
-                Airplane* airplane = find_airplane(flight_number);
+                Airplane *airplane = find_airplane(flight_number);
 
                 if (airplane) {
                     int seat_num = ticket->get_seat_num();
                     char seat_letter = 'A' + (seat_num - 1) % airplane->get_seats_per_row();
-                    double price = ticket->get_price();
+                    int row = (seat_num - 1) / airplane->get_seats_per_row() + 1;
 
                     cout << "Flight " << airplane->get_flight_number() << ", " << airplane->get_flight_date()
-                         << ", seat " << seat_num << seat_letter << ", price " << price << "$" << endl;
+                         << ", seat " << row << seat_letter << ", price " << ticket->get_price() << "$" << endl;
                     found = true;
                 }
             }
-            if (!found) {
-                return false;
-            }
         }
+        if (!found) {
+            cout << "No tickets found for " << passenger_name << endl;
+        }
+
         return found;
     }
 
@@ -422,7 +424,6 @@ public:
                 cout << "Invalid command!" << endl;
             }
         }
-
     }
 
     ~Command_Line_Interface() {
