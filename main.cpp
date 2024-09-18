@@ -107,7 +107,7 @@ public:
     RAII_Wrapper(const string& name) : file_name(name) {
         file_stream.open(file_name);
         if (!file_stream.is_open()) {
-            throw std::runtime_error("Error opening file");
+            throw runtime_error("Error opening file");
         }
     }
 
@@ -253,16 +253,16 @@ public:
     bool return_ticket(const string& confirmation_id) {
 
         if (id_map.find(confirmation_id) == id_map.end()) {
-            return false;
+            return false; // ticket not found
         }
         int seat_num = id_map[confirmation_id];
         Ticket* ticket = tickets[seat_num - 1];
-
-        string flight_number = ticket->get_flight_num();
+        Airplane* airplane = find_airplane(ticket->get_flight_num());
 
         double refund_amount = tickets[seat_num - 1]->get_price();
         string passenger_name = tickets[seat_num - 1]->get_passenger_name();
 
+        airplane->set_seat_availability(seat_num, false);
         delete tickets[seat_num - 1];
         tickets[seat_num - 1] = nullptr;
 
