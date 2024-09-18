@@ -298,17 +298,18 @@ public:
     bool view_user_tickets(const string& passenger_name) const {
         bool found = false;
 
-        for (int i = 0; i < airplane_count; ++i) {
-            Ticket *ticket = tickets[i];
+        for (const auto& ticket_pair : id_map) {
+            int seat_num = ticket_pair.second;
+            Ticket* ticket = tickets[seat_num - 1];
 
             if (ticket && ticket->get_passenger_name() == passenger_name) {
                 string flight_number = ticket->get_flight_num();
                 Airplane *airplane = find_airplane(flight_number);
 
                 if (airplane) {
-                    int seat_num = ticket->get_seat_num();
-                    char seat_letter = 'A' + (seat_num - 1) % airplane->get_seats_per_row();
-                    int row = (seat_num - 1) / airplane->get_seats_per_row() + 1;
+                    int seats_per_row = airplane->get_seats_per_row();
+                    int row = (seat_num - 1) / seats_per_row + 1;
+                    char seat_letter = 'A' + (seat_num - 1) % seats_per_row;
 
                     cout << "Flight " << airplane->get_flight_number() << ", " << airplane->get_flight_date()
                          << ", seat " << row << seat_letter << ", price " << ticket->get_price() << "$" << endl;
